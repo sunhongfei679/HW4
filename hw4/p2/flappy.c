@@ -5,6 +5,8 @@ void advancePipes(Game *game, float dt) {
      * in array order; if a pipe's right edge is <= 0, call recyclePipe. */
     for (int i = 0; i < PIPE_COUNT; i++) {
         game->m_pipes[i].m_x -= dt * PIPE_SPEED;
+    }
+    for (int i = 0; i < PIPE_COUNT; i++) {
         if (game->m_pipes[i].m_x + PIPE_WIDTH <= 0) {
             recyclePipe(game, i);
         }
@@ -45,9 +47,11 @@ int scorePassedPipes(Game *game) {
     int new_score = 0;
     for (int i = 0; i < PIPE_COUNT; i++) {
         if (game->m_pipes[i].m_x + PIPE_WIDTH < gameBirdBox(game).m_x) {
+            if (game->m_pipes[i].m_scored != true) {
+                game->m_score += 1;
+                new_score += 1;
+            }
             game->m_pipes[i].m_scored = true;
-            game->m_score += 1;
-            new_score += 1;
         }
     }
     (void)game;
