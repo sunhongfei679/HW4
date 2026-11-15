@@ -2,8 +2,10 @@
 #include <stdlib.h>
 
 bool snakeInit(Snake *snake, int rows, int cols, size_t length) {
-    if (rows < MIN_BOARD_SIZE || cols < MIN_BOARD_SIZE || length < 1 ||
-        cols - 2 * BOARD_WALL_THICKNESS < 1 || length > (size_t)(cols - 2 * BOARD_WALL_THICKNESS)) {
+    bool basicRequire = rows < MIN_BOARD_SIZE || cols < MIN_BOARD_SIZE || length < 1 ||
+                        cols - 2 * BOARD_WALL_THICKNESS < 1 ||
+                        length > (size_t)(cols - 2 * BOARD_WALL_THICKNESS);
+    if (basicRequire) {
         return false;
     }
     SnakeNode *firstNode = NULL;
@@ -53,10 +55,12 @@ Coord snakeNextPosition(const Snake *snake, Direction requested) {
     Coord position;
     position.m_col = snake->m_head->m_pos.m_col;
     position.m_row = snake->m_head->m_pos.m_row;
-    if ((snake->m_length > 1) && ((snake->m_direction == DIR_UP && requested == DIR_DOWN) ||
+    bool reverseInvalid =
+        (snake->m_length > 1) && ((snake->m_direction == DIR_UP && requested == DIR_DOWN) ||
                                   (snake->m_direction == DIR_DOWN && requested == DIR_UP) ||
                                   (snake->m_direction == DIR_LEFT && requested == DIR_RIGHT) ||
-                                  (snake->m_direction == DIR_RIGHT && requested == DIR_LEFT))) {
+                                  (snake->m_direction == DIR_RIGHT && requested == DIR_LEFT));
+    if (reverseInvalid) {
         if (snake->m_direction == DIR_LEFT) {
             position.m_col -= 1;
         } else if (snake->m_direction == DIR_RIGHT) {
@@ -111,10 +115,11 @@ StepResult snakeStep(Snake *snake, Direction requested, bool grow) {
     }
     // store the new position
     Coord nextPosition = snakeNextPosition(snake, requested);
-    if (nextPosition.m_row < BOARD_WALL_THICKNESS ||
-        nextPosition.m_row >= snake->m_rows - BOARD_WALL_THICKNESS ||
-        nextPosition.m_col < BOARD_WALL_THICKNESS ||
-        nextPosition.m_col >= snake->m_cols - BOARD_WALL_THICKNESS) {
+    bool contactWall = nextPosition.m_row < BOARD_WALL_THICKNESS ||
+                       nextPosition.m_row >= snake->m_rows - BOARD_WALL_THICKNESS ||
+                       nextPosition.m_col < BOARD_WALL_THICKNESS ||
+                       nextPosition.m_col >= snake->m_cols - BOARD_WALL_THICKNESS;
+    if (contactWall) {
         return STEP_WALL;
     }
     // contact with its own old tail position is ok.
@@ -140,11 +145,13 @@ StepResult snakeStep(Snake *snake, Direction requested, bool grow) {
         snake->m_head = newHead;
         snake->m_length++;
     }
-    if (((!grow && snake->m_length > 1) || (grow && snake->m_length - 1 > 1)) &&
-        ((snake->m_direction == DIR_UP && requested == DIR_DOWN) ||
-         (snake->m_direction == DIR_DOWN && requested == DIR_UP) ||
-         (snake->m_direction == DIR_LEFT && requested == DIR_RIGHT) ||
-         (snake->m_direction == DIR_RIGHT && requested == DIR_LEFT))) {
+    // check whether should I change the direction.
+    bool reverInvalid = ((!grow && snake->m_length > 1) || (grow && snake->m_length - 1 > 1)) &&
+                        ((snake->m_direction == DIR_UP && requested == DIR_DOWN) ||
+                         (snake->m_direction == DIR_DOWN && requested == DIR_UP) ||
+                         (snake->m_direction == DIR_LEFT && requested == DIR_RIGHT) ||
+                         (snake->m_direction == DIR_RIGHT && requested == DIR_LEFT));
+    if (reverInvalid) {
     } else if (requested != DIR_DOWN && requested != DIR_UP && requested != DIR_LEFT &&
                requested != DIR_RIGHT) {
     } else {
