@@ -1,7 +1,7 @@
 #include "flappy.h"
 
-// 必须先更新全部管道位置，再统一执行回收
-// 管道右边缘 <= 0 时触发回收
+// Update all pipe positions first, then recycle off-screen pipes uniformly
+// Recycling triggers when the right edge of a pipe is less than or equal to 0
 void advancePipes(Game *game, float dt) {
     for (int i = 0; i < PIPE_COUNT; i++) {
         game->m_pipes[i].m_x -= dt * PIPE_SPEED;
@@ -13,15 +13,15 @@ void advancePipes(Game *game, float dt) {
     }
 }
 
-// 检测小鸟是否碰撞障碍物（天花板、地板、管道）,接触边缘是可以的
+// Check if the bird hits obstacles (ceiling, floor, pipes); edge contact is safe
 bool birdHitsObstacle(const Game *game) {
-    // 先检测天花板和地板
+    // Check ceiling and floor collision first
     if (gameBirdBox(game).m_y < 0) {
         return true;
     } else if (gameBirdBox(game).m_y + gameBirdBox(game).m_height > FLOOR_Y) {
         return true;
     } else {
-        // 分别对上下管道检测，建立Box来使用boxesOverlap
+        // Check upper/lower pipes separately; construct Box structs for overlap test
         for (int i = 0; i < PIPE_COUNT; i++) {
             Pipe pipe = game->m_pipes[i];
             Box upperPipe = {
@@ -39,9 +39,9 @@ bool birdHitsObstacle(const Game *game) {
     return false;
 }
 
-// 管道右边缘严格小于鸟左边缘才算通过
-// m_scored防止同一管道重复计分
-// 返回本次新增的得分数量
+// A pipe counts as passed only when its right edge is strictly left of the bird
+// m_scored flag prevents duplicate scoring for the same pipe
+// Returns the number of new points added in this call
 int scorePassedPipes(Game *game) {
     int newScore = 0;
     for (int i = 0; i < PIPE_COUNT; i++) {
@@ -56,7 +56,7 @@ int scorePassedPipes(Game *game) {
     return newScore;
 }
 
-// seed > 0 时重置状态；seed = 0 时沿用当前状态
+// Reset internal state when seed > 0; continue with current state when seed == 0
 unsigned int nextRandom(unsigned int seed) {
     static unsigned int state = RANDOM_INITIAL_SEED;
     if (seed > 0) {

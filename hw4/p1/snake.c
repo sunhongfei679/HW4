@@ -130,11 +130,12 @@ StepResult snakeStep(Snake *snake, Direction requested, bool grow) {
         return STEP_SELF;
     }
     if (grow == false) {
+        // move the old tail A first,then name the new head A
         snake->m_head->m_next->m_pos.m_col = nextPosition.m_col;
         snake->m_head->m_next->m_pos.m_row = nextPosition.m_row;
         snake->m_head = snake->m_head->m_next;
-    } else if (grow ==
-               true) { // I want to create a new circuit first ,then change the address of m_head
+    } else if (grow == true) {
+        // I want to create a new circuit first ,then change the address of m_head
         SnakeNode *newHead = malloc(sizeof(SnakeNode));
         if (newHead == NULL) {
             return STEP_NO_MEMORY;
